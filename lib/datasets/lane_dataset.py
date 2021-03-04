@@ -200,6 +200,7 @@ class LaneDataset(Dataset):
             img = img_pad
         data = [(None, None, label)]
         if pred is not None:
+          # AC: Need to skip this as we don't have any metrics (yet)
             # print(len(pred), 'preds')
             fp, fn, matches, accs = self.dataset.get_metrics(pred, idx)
             # print('fp: {} | fn: {}'.format(fp, fn))

@@ -87,19 +87,24 @@ class Runner:
         predictions = []
         self.exp.eval_start_callback(self.cfg)
         with torch.no_grad():
+            processing_time = []
+            fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+            vout = cv2.VideoWriter('LaneATT.avi', fourcc , 30.0, (640, 360))
             for idx, (images, _, _) in enumerate(tqdm(dataloader)):
                 images = images.to(self.device)
                 output = model(images, **test_parameters)
                 prediction = model.decode(output, as_lanes=True)
                 predictions.extend(prediction)
                 if self.view:
-                    img = (images[0].cpu().permute(1, 2, 0).numpy() * 255).astype(np.uint8)
-                    img, fp, fn = dataloader.dataset.draw_annotation(idx, img=img, pred=prediction[0])
+                    img_orig = (images[0].cpu().permute(1, 2, 0).numpy() * 255).astype(np.uint8)
+                    img, fp, fn = dataloader.dataset.draw_annotation(idx, img=img_orig, pred=prediction[0])
+                    vout.write(img)
                     if self.view == 'mistakes' and fp == 0 and fn == 0:
+                        print('mistake!')
                         continue
-                    cv2.imshow('pred', img)
-                    cv2.waitKey(0)
-
+                    # cv2.imshow('pred', img)
+                    # cv2.waitKey(0)
+        vout.release()
         if save_predictions:
             with open('predictions.pkl', 'wb') as handle:
                 pickle.dump(predictions, handle, protocol=pickle.HIGHEST_PROTOCOL)

@@ -10,21 +10,8 @@ import utils.culane_metric as culane_metric
 from .lane_dataset_loader import LaneDatasetLoader
 
 SPLIT_FILES = {
-    'train': "list/train.txt",
-    'val': 'list/val.txt',
-    'test': "list/test.txt",
-    'normal': 'list/test_split/test0_normal.txt',
-    'crowd': 'list/test_split/test1_crowd.txt',
-    'hlight': 'list/test_split/test2_hlight.txt',
-    'shadow': 'list/test_split/test3_shadow.txt',
-    'noline': 'list/test_split/test4_noline.txt',
-    'arrow': 'list/test_split/test5_arrow.txt',
-    'curve': 'list/test_split/test6_curve.txt',
-    'cross': 'list/test_split/test7_cross.txt',
-    'night': 'list/test_split/test8_night.txt',
-    'debug': 'list/debug.txt'
+    'test': "cadillac_ct6.txt",
 }
-
 
 class CULane(LaneDatasetLoader):
     def __init__(self, max_lanes=None, split='train', root=None, official_metric=True):
@@ -60,7 +47,9 @@ class CULane(LaneDatasetLoader):
             lane = list(map(float, lane.split()))
             lane = [(lane[i], lane[i + 1]) for i in range(0, len(lane), 2) if lane[i] >= 0 and lane[i + 1] >= 0]
             lanes.append(lane)
-        anno = culane_metric.load_culane_img_data(self.annotations[idx]['path'].replace('.jpg', '.lines.txt'))
+        # AC: no annotation data...
+        # anno = culane_metric.load_culane_img_data(self.annotations[idx]['path'].replace('.jpg', '.lines.txt'))
+        anno = []
         _, fp, fn, ious, matches = culane_metric.culane_metric(lanes, anno)
 
         return fp, fn, matches, ious
@@ -100,7 +89,12 @@ class CULane(LaneDatasetLoader):
 
             for file in tqdm(files):
                 img_path = os.path.join(self.root, file)
-                anno = self.load_annotation(img_path)
+                # AC: skip, as AVT has no annotations
+                # anno = self.load_annotation(img_path)
+                anno = {
+                  'lanes': [],
+                  'path': img_path
+                }
                 anno['org_path'] = file
 
                 if len(anno['lanes']) > 0:
